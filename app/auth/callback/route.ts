@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
+import { saveRefreshToken } from "@/lib/supabase/userToken";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.exchangeCodeForSession(code);
 
     if (session?.provider_refresh_token) {
-      await storeRefreshToken(user.id, session.provider_refresh_token);
+      await saveRefreshToken(session.user.id, session.provider_refresh_token);
     }
 
     if (!error) {
