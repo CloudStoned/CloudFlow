@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/components/auth/SignInButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,11 +50,6 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle>Login to your account</CardTitle>
         <CardDescription>Enter your email below to login to your account</CardDescription>
-        <CardAction>
-          <Button variant="link" asChild>
-            <a href="/signup">Sign Up</a>
-          </Button>
-        </CardAction>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAuth}>
@@ -92,6 +88,7 @@ export default function LoginPage() {
         <Button type="submit" className="w-full" disabled={loading} onClick={handleAuth}>
           {loading ? "Loading..." : "Login"}
         </Button>
+        <GoogleSignInButton />
       </CardFooter>
     </Card>
   );
