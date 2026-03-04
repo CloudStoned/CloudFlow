@@ -1,7 +1,9 @@
 import getUser from "@/utils/get-user";
+import { GmailButton } from "@/components/dashboard/GmailButton";
 
 export default async function DashboardPage() {
   const user = await getUser();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -11,6 +13,9 @@ export default async function DashboardPage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to CloudFlow Dashboard</h1>
               <p className="text-gray-600 mb-2">Logged in as: {user.email}</p>
               <p className="text-sm text-gray-500">Day 1-2 setup complete! Ready for Gmail integration.</p>
+              <div className="mt-4">
+                <GmailButton userId={user.id} />
+              </div>
             </div>
           </div>
         </div>
