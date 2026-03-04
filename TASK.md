@@ -3,7 +3,7 @@ CloudFlow — Your AI Workflow Engine for Email & Execution
 🗓 WEEK 1 — Core Engine (Foundation)
 Goal: Make email → structured action.
 
-- [ ] Day 1–2: Project Setup
+- [x] Day 1–2: Project Setup
   - Choose stack (keep it simple)
     - Frontend: Next.js (you already use this style)
     - Backend: API routes or separate Node server
