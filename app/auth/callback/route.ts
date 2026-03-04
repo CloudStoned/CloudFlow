@@ -8,7 +8,14 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (session?.provider_refresh_token) {
+      await storeRefreshToken(user.id, session.provider_refresh_token);
+    }
 
     if (!error) {
       return NextResponse.redirect(new URL("/dashboard", request.url));

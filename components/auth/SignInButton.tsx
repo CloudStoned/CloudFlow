@@ -10,6 +10,11 @@ export function GoogleSignInButton() {
       provider: "google",
       options: {
         redirectTo: `${location.origin}/auth/callback`,
+        scopes: "https://www.googleapis.com/auth/gmail.readonly email profile",
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
     });
 
