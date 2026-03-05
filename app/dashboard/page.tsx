@@ -1,4 +1,4 @@
-import getUser from "@/utils/get-user";
+import getUser from "@/lib/get-user";
 import { GmailButton } from "@/components/dashboard/GmailButton";
 
 export default async function DashboardPage() {
