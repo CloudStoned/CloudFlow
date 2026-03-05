@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { testGmailConnection } from "@/app/actions/gmail";
 
 interface GmailButtonProps {
   userId: string;
@@ -8,7 +9,7 @@ interface GmailButtonProps {
 
 export function GmailButton({ userId }: GmailButtonProps) {
   const fetchGmailData = async () => {
-    const response = await fetch(`/api/gmail?userId=${userId}`);
+    const response = await testGmailConnection(userId);
     console.log("RESPONSE", response);
   };
 

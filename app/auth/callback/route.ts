@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { saveRefreshToken } from "@/lib/supabase/userToken";
+import { saveRefreshToken } from "@/app/actions/gmail";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {

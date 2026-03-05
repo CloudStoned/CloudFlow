@@ -1,7 +1,6 @@
 from supabase import Client
 from datetime import datetime
 
-
 def save_refresh_token(supabase: Client, user_id: str, refresh_token: str):
     data = {
         "user_id": user_id,

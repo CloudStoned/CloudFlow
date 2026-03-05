@@ -3,8 +3,10 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from repositories.user_tokens_repo import get_refresh_token
 from core.config import get_settings
+from core.logger import get_logger
 
 settings = get_settings()
+logger = get_logger(__name__)
 
 def get_gmail_client(supabase: Client, user_id: str):
 
@@ -28,5 +30,4 @@ def test_gmail_connection(supabase: Client, user_id: str):
     gmail = get_gmail_client(supabase, user_id)
 
     response = gmail.users().labels().list(userId="me").execute()
-
     return response.get("labels", [])
