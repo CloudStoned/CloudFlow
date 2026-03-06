@@ -39,6 +39,7 @@ export default function LoginPage() {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        scopes: "https://www.googleapis.com/auth/gmail.readonly",
       },
     });
     if (error) {

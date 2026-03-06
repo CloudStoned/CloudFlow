@@ -18,13 +18,13 @@ export default function Dashboard() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (session?.access_token) {
+      if (session?.provider_token) {
         setUser(session.user);
         await fetch("http://localhost:8000/auth/link-gmail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            access_token: session.access_token,
+            provider_token: session.provider_token,
             refresh_token: session.refresh_token,
             user_id: session.user.id,
           }),

@@ -6,6 +6,7 @@ from core.database import supabase
 from core.logger import get_logger
 from core.config import get_settings
 import base64
+import datetime
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/emails", tags=["emails"])
 
 def get_gmail_service(user_id: str):
   result = supabase.table("user_tokens").select("*").eq("user_id", user_id).single().execute()
+
   if not result.data:
     logger.error(f"User {user_id} not found")
     return None
@@ -54,7 +56,7 @@ def fetch_emails(user_id: str):
             'sender': headers.get('From', ''),
             'body': body[:5000],
             'thread_id': detail.get('threadId'),
-            'received_at': datetime.utcnow().isoformat()
+            'received_at': datetime.datetime.now().isoformat()
         }).execute()
         saved.append(msg['id'])
     return {'fetched': len(saved)}

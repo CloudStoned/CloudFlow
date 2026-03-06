@@ -17,7 +17,7 @@ SCOPES = [
 ]
 
 class LinkGmailRequest(BaseModel):
-    access_token: str
+    provider_token: str
     refresh_token: str
     user_id: str
 
@@ -28,7 +28,7 @@ async def link_gmail(request: LinkGmailRequest):
     if not existing_user.data:
         supabase.table("user_tokens").insert({
             "user_id": request.user_id,
-            "access_token": request.access_token,
+            "access_token": request.provider_token,
             "refresh_token": request.refresh_token,
             "expires_at": (datetime.datetime.now() + timedelta(hours=1)).isoformat()
         }).execute()
