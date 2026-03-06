@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { GoogleIcon } from "@/components/icons/GoogleIcon";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -32,6 +33,21 @@ export default function LoginPage() {
     setLoading(false);
   }
 
+  async function handleGoogleLogin() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
@@ -54,6 +70,22 @@ export default function LoginPage() {
         </button>
         <button className="w-full border p-2 rounded" onClick={handleSignup} disabled={loading}>
           Create Account
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-sm text-gray-400">or</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        <button
+          className="w-full border p-2 rounded flex items-center justify-center gap-3"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+        >
+          <GoogleIcon />
+          <span className="text-sm font-medium">Sign in with Google</span>
         </button>
       </div>
     </div>

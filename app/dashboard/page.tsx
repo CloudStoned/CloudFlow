@@ -13,14 +13,25 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.push("/");
-        return;
+    async function saveGmailToken() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.access_token) {
+        setUser(session.user);
+        await fetch("http://localhost:8000/auth/link-gmail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            user_id: session.user.id,
+          }),
+        });
       }
-      setUser(data.user);
-      loadEmails(data.user.id);
-    });
+    }
+    saveGmailToken();
   }, []);
 
   async function loadEmails(userId: string) {
@@ -29,10 +40,15 @@ export default function Dashboard() {
   }
 
   async function fetchNewEmails() {
-    if (!user?.id) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+
+    if (!userId) return;
     setLoading(true);
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/fetch/${user.id}`, { method: "POST" });
-    await loadEmails(user.id);
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/fetch/${userId}`, { method: "POST" });
+    await loadEmails(userId);
     setLoading(false);
   }
 
