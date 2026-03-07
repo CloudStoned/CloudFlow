@@ -1,3 +1,5 @@
+"use server";
+
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { EmailAction } from "@/lib/types";
 

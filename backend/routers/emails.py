@@ -15,7 +15,6 @@ router = APIRouter(prefix="/emails", tags=["emails"])
 
 def get_gmail_service(user_id: str):
   result = supabase.table("user_tokens").select("*").eq("user_id", user_id).single().execute()
-
   if not result.data:
     logger.error(f"User {user_id} not found")
     return None
@@ -28,6 +27,7 @@ def get_gmail_service(user_id: str):
     client_id = settings.GOOGLE_CLIENT_ID,
     client_secret = settings.GOOGLE_CLIENT_SECRET,
   )
+  
   return build("gmail", "v1", credentials=creds)
 
 @router.post('/fetch/{user_id}')

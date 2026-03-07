@@ -12,13 +12,9 @@ settings = get_settings()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-SCOPES = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-]
-
 class SaveTokenRequest(BaseModel):
     provider_token: str
-    refresh_token: str
+    provider_refresh_token: str
     user_id: str
 
 @router.post("/token")
@@ -29,7 +25,7 @@ async def save_token(request: SaveTokenRequest):
         supabase.table("user_tokens").insert({
             "user_id": request.user_id,
             "access_token": request.provider_token,
-            "refresh_token": request.refresh_token,
+            "refresh_token": request.provider_refresh_token,
             "expires_at": (datetime.datetime.now() + timedelta(hours=1)).isoformat()
         }).execute()
     

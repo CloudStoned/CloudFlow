@@ -12,15 +12,14 @@ export async function GET(request: Request) {
       data: { session },
       error,
     } = await supabase.auth.exchangeCodeForSession(code);
-
     if (session?.provider_token) {
       await fetch("http://localhost:8000/auth/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: session.user.id,
-          refresh_token: session.refresh_token,
           provider_token: session.provider_token,
+          provider_refresh_token: session.provider_refresh_token,
         }),
       });
     }
