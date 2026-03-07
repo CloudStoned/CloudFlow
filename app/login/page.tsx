@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
 
@@ -12,6 +12,7 @@ export default function LoginPage() {
 
   async function handleLogin() {
     setLoading(true);
+    const supabase = createSupabaseBrowser();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert(error.message);
@@ -23,6 +24,7 @@ export default function LoginPage() {
 
   async function handleSignup() {
     setLoading(true);
+    const supabase = createSupabaseBrowser();
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
       alert(error.message);
@@ -35,10 +37,11 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setLoading(true);
+    const supabase = createSupabaseBrowser();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         scopes: "https://www.googleapis.com/auth/gmail.readonly",
       },
     });

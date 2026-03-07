@@ -16,13 +16,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
 ]
 
-class LinkGmailRequest(BaseModel):
+class SaveTokenRequest(BaseModel):
     provider_token: str
     refresh_token: str
     user_id: str
 
-@router.post("/link-gmail")
-async def link_gmail(request: LinkGmailRequest):
+@router.post("/token")
+async def save_token(request: SaveTokenRequest):
     existing_user = supabase.table("user_tokens").select("*").eq("user_id", request.user_id).execute()
     
     if not existing_user.data:

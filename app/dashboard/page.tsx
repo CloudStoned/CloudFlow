@@ -1,55 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { User, EmailAction } from "@/lib/types";
+import { useState } from "react";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { EmailAction } from "@/lib/types";
+import { loadEmails, fetchNewEmails } from "@/app/actions/emails";
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
   const [emails, setEmails] = useState<EmailAction[]>([]);
   const [tab, setTab] = useState<"action" | "waiting" | "fyi">("action");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  useEffect(() => {
-    async function saveGmailToken() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.provider_token) {
-        setUser(session.user);
-        await fetch("http://localhost:8000/auth/link-gmail", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider_token: session.provider_token,
-            refresh_token: session.refresh_token,
-            user_id: session.user.id,
-          }),
-        });
-      }
-    }
-    saveGmailToken();
-  }, []);
-
-  async function loadEmails(userId: string) {
-    const { data } = await supabase.from("email_actions").select("*, emails(*)").eq("user_id", userId);
-    setEmails(data || []);
-  }
-
-  async function fetchNewEmails() {
+  async function handleFetchNewEmails() {
+    const supabase = createSupabaseBrowser();
     const {
       data: { session },
     } = await supabase.auth.getSession();
     const userId = session?.user?.id;
 
     if (!userId) return;
-    setLoading(true);
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/fetch/${userId}`, { method: "POST" });
-    await loadEmails(userId);
-    setLoading(false);
+
+    try {
+      setLoading(true);
+      await fetchNewEmails(userId);
+      const emails = await loadEmails(userId);
+      setEmails(emails);
+    } catch (error) {
+      console.error("Error fetching emails:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const filtered = emails.filter((e) => {
@@ -69,7 +48,11 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">CloudFlow</h1>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={fetchNewEmails} disabled={loading}>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+            onClick={handleFetchNewEmails}
+            disabled={loading}
+          >
             {loading ? "Fetching..." : "Fetch Emails"}
           </button>
         </div>
