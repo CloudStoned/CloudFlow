@@ -1,3 +1,3 @@
-@router.post("/link-gmail")
+BUG:
 
-- Always inserting to database
+- Multiple inserting of emails when fetching
