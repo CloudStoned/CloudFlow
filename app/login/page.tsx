@@ -37,24 +37,7 @@ export default function LoginPage() {
 
   async function handleGoogleLogin() {
     setLoading(true);
-    const supabase = createSupabaseBrowser();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        scopes: "https://www.googleapis.com/auth/gmail.readonly",
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    });
-
-    if (error) {
-      alert(error);
-      setLoading(false);
-      return;
-    }
+    window.location.href = "http://localhost:8000/auth/google";
   }
 
   return (

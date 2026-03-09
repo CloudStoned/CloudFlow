@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from routers import auth, emails, actions
 from core.config import get_settings
 
@@ -15,10 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET_KEY)
+
 @app.get("/")
 def root():
     return {"message": "Cloudflow API"}
-
 
 app.include_router(auth.router)
 app.include_router(emails.router)

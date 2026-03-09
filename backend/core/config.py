@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     FRONTEND_URL: str
-
+    SESSION_SECRET_KEY: str
+    
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()

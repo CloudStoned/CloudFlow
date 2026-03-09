@@ -23,6 +23,7 @@ export default function Dashboard() {
       setLoading(true);
       await fetchNewEmails(userId);
       const emails = await loadEmails(userId);
+      console.log("Emails:", emails);
       setEmails(emails);
     } catch (error) {
       console.error("Error fetching emails:", error);
