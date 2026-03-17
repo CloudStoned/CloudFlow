@@ -1,18 +1,34 @@
-import { NextResponse } from "next/server";
+"use client";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code");
-  const error = searchParams.get("error");
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
-  if (error) {
-    return NextResponse.redirect(new URL(`/login?error=${error}`, request.url));
-  }
+export default function AuthCallback() {
+  const router = useRouter();
+  const supabase = createSupabaseBrowser();
 
-  if (!code) {
-    return NextResponse.redirect(new URL("/login?error=no_code", request.url));
-  }
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
 
-  const fastapiCallbackUrl = `http://localhost:8000/auth/callback?code=${code}`;
-  return NextResponse.redirect(fastapiCallbackUrl);
+    if (accessToken && refreshToken) {
+      // Restore the session on the frontend Supabase client
+      supabase.auth
+        .setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        .then(({ error }) => {
+          if (error) {
+            router.push("/login?error=session_failed");
+          } else {
+            router.push("/dashboard");
+          }
+        });
+    } else {
+      router.push("/login?error=missing_tokens");
+    }
+  }, []);
 }

@@ -3,89 +3,87 @@ from fastapi.responses import RedirectResponse
 from core.database import supabase
 from core.config import get_settings
 from core.logger import get_logger
-from core.oauth_config import oauth
 import datetime
 from datetime import timedelta
-from pydantic import BaseModel
-from typing import Optional
+from schemas.provider_token_schema import ProviderTokenSchema
 
 logger = get_logger(__name__)
-
 settings = get_settings()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-class SaveTokenRequest(BaseModel):
-    provider_token: str
-    provider_refresh_token: Optional[str] = None
-    user_id: str
+FRONTEND_URL = "http://localhost:3000"
+
 
 @router.get('/google')
 async def google_login(request: Request):
-    redirect_uri = 'http://localhost:8000/auth/callback'
-    return await oauth.google.authorize_redirect(
-        request,
-        redirect_uri,
-    )
+    response = supabase.auth.sign_in_with_oauth({
+        "provider": "google",
+        "options": {
+            "redirect_to": "http://localhost:8000/auth/callback",
+            "scopes": "openid email profile https://www.googleapis.com/auth/gmail.readonly",
+        }
+    })
+    return RedirectResponse(url=response.url)
+
 
 @router.get('/callback')
 async def google_callback(request: Request):
+    code = request.query_params.get("code")
+    if not code:
+        return RedirectResponse(url=f"{FRONTEND_URL}/login?error=missing_code")
+
     try:
-        token = await oauth.google.authorize_access_token(request)
-        user_info = token.get('userinfo')
+        session = supabase.auth.exchange_code_for_session({"auth_code": code})
 
-        if not user_info:
-            user_info = await oauth.google.parse_id_token(request, token)
-        
-        code = request.query_params.get('code')
-        if not code:
-            return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=no_code")
+        access_token = session.session.access_token
+        refresh_token = session.session.refresh_token
+        provider_token = session.session.provider_token
+        provider_refresh_token = session.session.provider_refresh_token
+        user_id = session.user.id
 
-        provider_token = token.get('access_token')
-        provider_refresh_token = token.get('refresh_token')
+        await save_provider_token(
+            ProviderTokenSchema(
+                user_id=user_id,
+                access_token=provider_token,
+                provider_refresh_token=provider_refresh_token
+            )
+        )
 
-        try:
-            auth_response = supabase.auth.admin.create_user({
-                "email": user_info['email'],
-                "email_confirm": True,
-                "user_metadata": {
-                    "name": user_info.get('name', ''),
-                    "picture": user_info.get('picture', '')
-                }
-            })
-            user_id = auth_response.user.id
-        except Exception:
-            user = supabase.auth.admin.get_user_by_email(user_info['email'])
-            user_id = user.user.id
+        response = RedirectResponse(url=f"{FRONTEND_URL}/dashboard")
+        response.set_cookie("access_token", access_token,
+            httponly=True, secure=False, samesite="lax", max_age=3600)
+        response.set_cookie("refresh_token", refresh_token,
+            httponly=True, secure=False, samesite="lax", max_age=60*60*24*30)
 
-        if provider_token:
-            await save_token(SaveTokenRequest(
-                provider_token=provider_token,
-                provider_refresh_token=provider_refresh_token,
-                user_id=user_id
-            ))
-        
-        return RedirectResponse(url=f"{settings.FRONTEND_URL}/dashboard")
-        
+        return response
+
     except Exception as e:
-        logger.error(f"OAuth callback error: {str(e)}")
-        return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=oauth_failed")
+        logger.error(f"OAuth callback error: {e}")
+        return RedirectResponse(url=f"{FRONTEND_URL}/login?error=auth_failed")
 
-async def save_token(request: SaveTokenRequest):
-    existing_token = supabase.table("user_tokens").select("*").eq("user_id", request.user_id).execute()
-    
-    token_data = {
-        "user_id": request.user_id,
-        "access_token": request.provider_token,
-        "expires_at": (datetime.datetime.now() + timedelta(hours=1)).isoformat()
-    }
+async def save_provider_token(data: ProviderTokenSchema):
+    try:
+        token_data = {
+            "user_id": data.user_id,
+            "access_token": data.access_token,
+            "expires_at": (datetime.datetime.now() + timedelta(hours=1)).isoformat()
+        }
 
-    if request.provider_refresh_token:
-        token_data["refresh_token"] = request.provider_refresh_token
+        if data.provider_refresh_token:
+            token_data["refresh_token"] = data.provider_refresh_token
 
-    if not existing_token.data:
-        supabase.table("user_tokens").insert(token_data).execute()
-    else:
-        supabase.table("user_tokens").update(token_data).eq("user_id", request.user_id).execute()
-    
-    return {"success": True}
+        existing = supabase.table("user_tokens") \
+            .select("user_id") \
+            .eq("user_id", data.user_id) \
+            .execute()
+
+        if not existing.data:
+            supabase.table("user_tokens").insert(token_data).execute()
+        else:
+            supabase.table("user_tokens").update(token_data).eq("user_id", data.user_id).execute()
+
+        logger.info(f"Provider token saved for user {data.user_id}")
+
+    except Exception as e:
+        logger.error(f"Failed to save provider token: {e}")
