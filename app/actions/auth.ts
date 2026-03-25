@@ -36,7 +36,10 @@ export async function signOut() {
     await fetch("http://localhost:8000/auth/logout", {
       method: "POST",
       credentials: "include",
+      redirect: "manual",
     });
+
+    window.location.href = "http://localhost:3000/login";
   } catch (error) {
     console.error("Error signing out:", error);
     throw error;

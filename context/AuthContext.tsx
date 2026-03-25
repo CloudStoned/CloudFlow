@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { getCurrentUser, signOut } from "@/app/actions/auth";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { getCurrentUser, signOut as signOutAction } from "@/app/actions/auth";
 
 interface User {
   id: string;
@@ -10,12 +10,6 @@ interface User {
   avatar_url?: string;
   full_name?: string;
   picture?: string;
-  user_metadata?: {
-    name?: string;
-    full_name?: string;
-    avatar_url?: string;
-    picture?: string;
-  };
 }
 
 interface AuthContextType {
@@ -33,15 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const user = await getCurrentUser();
-
-      if (user === null) {
-        setUser(null);
-        window.location.href = "/login";
-        return;
-      }
-
-      setUser(user);
+      const data = await getCurrentUser();
+      setUser(data ?? null);
     } catch (error) {
       console.error("Error fetching user:", error);
       setUser(null);
@@ -57,13 +44,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await signOutAction();
       setUser(null);
-      window.location.href = "/login";
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, refreshUser, signOut: handleSignOut }}>

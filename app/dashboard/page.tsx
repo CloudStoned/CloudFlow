@@ -1,14 +1,22 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
 
-  if (!user) {
-    return <div>Please sign in</div>;
-  }
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading]);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return null;
 
   return (
     <div className="p-6">
