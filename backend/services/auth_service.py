@@ -114,4 +114,6 @@ async def logout():
     
     supabase.auth.sign_out()
     
+    logger.info("User logged out")
+    
     return response
