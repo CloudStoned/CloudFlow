@@ -1,28 +1,44 @@
-import { createSupabaseServer } from "@/lib/supabase/server";
-
-export async function linkGmailAccount() {
-  const supabase = await createSupabaseServer();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (session?.provider_token) {
-    const response = await fetch("http://localhost:8000/auth/link-gmail", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        provider_token: session.provider_token,
-        refresh_token: session.refresh_token,
-        user_id: session.user.id,
-      }),
+export async function getCurrentUser() {
+  try {
+    const res = await fetch("http://localhost:8000/auth/me", {
+      credentials: "include",
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to link Gmail account");
+    if (res.status === 401) {
+      return null;
     }
 
-    return response.json();
-  }
+    if (!res.ok) {
+      throw new Error("Failed to fetch user");
+    }
 
-  throw new Error("No provider token available");
+    const data = await res.json();
+    if (!data) {
+      return null;
+    }
+
+    return {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.user_metadata?.name || data.user.user_metadata?.full_name,
+      avatar_url: data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture,
+      full_name: data.user.user_metadata?.full_name,
+      picture: data.user.user_metadata?.picture,
+    };
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+}
+
+export async function signOut() {
+  try {
+    await fetch("http://localhost:8000/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
 }
