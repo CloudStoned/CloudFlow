@@ -45,8 +45,8 @@ async def google_callback(request: Request):
         await save_provider_token(
             ProviderTokenSchema(
                 user_id=user_id,
-                access_token=google_access_token,
-                provider_refresh_token=google_refresh_token
+                google_access_token=google_access_token,
+                google_refresh_token=google_refresh_token
             )
         )
 
@@ -83,12 +83,12 @@ async def save_provider_token(data: ProviderTokenSchema):
     try:
         token_data = {
             "user_id": data.user_id,
-            "google_access_token": data.access_token,
+            "google_access_token": data.google_access_token,
             "expires_at": (datetime.datetime.now() + timedelta(hours=1)).isoformat()
         }
 
-        if data.provider_refresh_token:
-            token_data["google_refresh_token"] = data.provider_refresh_token
+        if data.google_refresh_token:
+            token_data["google_refresh_token"] = data.google_refresh_token
 
         existing = supabase.table("user_tokens") \
             .select("user_id") \
