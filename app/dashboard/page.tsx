@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { fetchNewEmails } from "@/app/actions/emails";
+import { fetchNewEmails, getEmails } from "@/app/actions/emails";
 
 export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
+  const [emails, setEmails] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -22,6 +23,11 @@ export default function Dashboard() {
   const handleFetchEmails = async () => {
     console.log("Fetching emails...");
     await fetchNewEmails(user.id);
+  };
+
+  const handleLoadEmails = async () => {
+    const emails = await getEmails(user.id);
+    setEmails(emails);
   };
 
   return (
@@ -40,6 +46,9 @@ export default function Dashboard() {
       </div>
       <Button style={{ cursor: "pointer" }} onClick={handleFetchEmails}>
         Fetch Emails
+      </Button>
+      <Button style={{ cursor: "pointer" }} onClick={handleLoadEmails}>
+        Load Emails
       </Button>
     </div>
   );

@@ -16,3 +16,6 @@ def upsert_email(email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     else:
         result = supabase.table('emails').insert(email_data).execute()
         return result.data if result.data else None
+
+def get_emails(user_id: str):
+    return supabase.table('emails').select('*').eq('user_id', user_id).execute()
