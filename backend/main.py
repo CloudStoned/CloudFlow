@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from routers import auth, emails, actions
+from routers import auth, emails
 from core.config import get_settings
 
 app = FastAPI()
@@ -24,7 +24,6 @@ def root():
 
 app.include_router(auth.router)
 app.include_router(emails.router)
-app.include_router(actions.router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, reload=True)
