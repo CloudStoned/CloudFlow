@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { fetchNewEmails } from "@/app/actions/emails";
 
 export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
@@ -17,6 +18,11 @@ export default function Dashboard() {
 
   if (loading) return <div>Loading...</div>;
   if (!user) return null;
+
+  const handleFetchEmails = async () => {
+    console.log("Fetching emails...");
+    await fetchNewEmails(user.id);
+  };
 
   return (
     <div className="p-6">
@@ -32,7 +38,9 @@ export default function Dashboard() {
           Sign Out
         </Button>
       </div>
-      <Button>Fetch Emails</Button>
+      <Button style={{ cursor: "pointer" }} onClick={handleFetchEmails}>
+        Fetch Emails
+      </Button>
     </div>
   );
 }

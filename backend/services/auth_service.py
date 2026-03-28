@@ -1,8 +1,8 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import RedirectResponse
-from core.database import supabase
 from core.config import get_settings
 from core.logger import get_logger
+from queries.user_tokens import check_user_tokens_exist, insert_user_tokens, update_user_tokens
 import datetime
 from datetime import timedelta
 from schemas.provider_token_schema import ProviderTokenSchema
@@ -15,6 +15,7 @@ FRONTEND_URL = "http://localhost:3000"
 
 async def google_login(request: Request):
     """Initiate Google OAuth login flow."""
+    from core.database import supabase
     response = supabase.auth.sign_in_with_oauth({
         "provider": "google",
         "options": {
@@ -27,6 +28,7 @@ async def google_login(request: Request):
 
 async def google_callback(request: Request):
     """Handle Google OAuth callback."""
+    from core.database import supabase
     code = request.query_params.get("code")
     if not code:
         return RedirectResponse(url=f"{FRONTEND_URL}/login?error=missing_code")
@@ -90,15 +92,12 @@ async def save_provider_token(data: ProviderTokenSchema):
         if data.google_refresh_token:
             token_data["google_refresh_token"] = data.google_refresh_token
 
-        existing = supabase.table("user_tokens") \
-            .select("user_id") \
-            .eq("user_id", data.user_id) \
-            .execute()
+        existing = check_user_tokens_exist(data.user_id)
 
-        if not existing.data:
-            supabase.table("user_tokens").insert(token_data).execute()
+        if not existing:
+            insert_user_tokens(token_data)
         else:
-            supabase.table("user_tokens").update(token_data).eq("user_id", data.user_id).execute()
+            update_user_tokens(data.user_id, token_data)
 
         logger.info(f"Provider token saved for user {data.user_id}")
 
@@ -108,6 +107,7 @@ async def save_provider_token(data: ProviderTokenSchema):
 
 async def logout():
     """Handle user logout."""
+    from core.database import supabase
     response = RedirectResponse(url=f"{FRONTEND_URL}/login")
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/")
